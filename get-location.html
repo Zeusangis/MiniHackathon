@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Get Location — One-file demo</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            padding: 2rem;
+            background: #0f172a;
+            color: #e6eef8;
+        }
+
+        .card {
+            background: #111827;
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            max-width: 520px;
+        }
+
+        button {
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            border: none;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+        }
+
+        .row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-top: 0.75rem
+        }
+
+        .label {
+            color: #94a3b8;
+            font-size: 0.9rem
+        }
+
+        .value {
+            font-weight: 600
+        }
+
+        .hint {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-top: 0.5rem
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Get Location — One-file demo</h1>
+    <div class="card">
+        <p>This page will attempt to read your geolocation once on load and also when you click the button. Results are
+            logged to the browser console and shown below.</p>
+
+        <div class="row">
+            <button id="get-location">Get Location</button>
+            <div class="label">Status: <span id="status">idle</span></div>
+        </div>
+
+        <div style="margin-top:1rem">
+            <div class="label">Latitude: <span id="latitude" class="value">—</span></div>
+            <div class="label">Longitude: <span id="longitude" class="value">—</span></div>
+        </div>
+
+        <p class="hint">Note: Geolocation requires HTTPS or localhost. If you open this file with file:// it may not
+            work. Run a local server (see instructions below) or place on an HTTPS site.</p>
+
+        <h3 style="margin-top:1rem">How to run locally</h3>
+        <pre style="background:#0b1220;padding:0.5rem;border-radius:6px;color:#cbd5e1"># start a simple static server (fish shell)
+npx http-server . -p 8080
+# or with python
+python3 -m http.server 8080
+
+# then open:
+# http://localhost:8080/get-location.html
+</pre>
+    </div>
+
+    <script>
+        // Small helper to update UI and log
+        const button = document.getElementById('get-location');
+        const latText = document.getElementById('latitude');
+        const longText = document.getElementById('longitude');
+        const statusText = document.getElementById('status');
+
+        function onPosition(position) {
+            const lat = position.coords.latitude;
+            const long = position.coords.longitude;
+            console.log('Geolocation success:', { lat, long, position });
+            latText.innerText = lat.toFixed(6);
+            longText.innerText = long.toFixed(6);
+            statusText.innerText = 'success';
+        }
+
+        function onError(err) {
+            console.warn('Geolocation error', err);
+            statusText.innerText = 'error: ' + (err && err.message ? err.message : String(err));
+        }
+
+        function getLocationOnce() {
+            if (!navigator.geolocation) {
+                onError(new Error('Geolocation API not supported'));
+                return;
+            }
+            statusText.innerText = 'requesting';
+            navigator.geolocation.getCurrentPosition(onPosition, onError, { enableHighAccuracy: true, timeout: 10000 });
+        }
+
+        // Run once on load
+        window.addEventListener('load', () => {
+            try {
+                getLocationOnce();
+            } catch (e) {
+                onError(e);
+            }
+        });
+
+        // Also allow manual retry
+        button.addEventListener('click', () => {
+            getLocationOnce();
+        });
+    </script>
+</body>
+
+</html>
